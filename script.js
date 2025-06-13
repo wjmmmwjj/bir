@@ -146,4 +146,74 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // === 滑動螢幕有金色粒子跟隨手指移動 ===
+    function spawnGoldParticle(x, y) {
+        const p = document.createElement('span');
+        p.className = 'particle';
+        p.textContent = '✨';
+        p.style.position = 'fixed';
+        p.style.left = (x - 8) + 'px';
+        p.style.top = (y - 8) + 'px';
+        p.style.fontSize = (14 + Math.random()*8) + 'px';
+        p.style.color = '#ffd700';
+        p.style.opacity = 0.85;
+        p.style.pointerEvents = 'none';
+        p.style.zIndex = 99;
+        document.body.appendChild(p);
+        p.animate([
+            { opacity: 0.85, transform: 'scale(1)' },
+            { opacity: 0, transform: 'scale(1.7) translateY(-18px)' }
+        ], {
+            duration: 700,
+            fill: 'forwards'
+        });
+        setTimeout(() => p.remove(), 700);
+    }
+    ['touchmove','mousemove'].forEach(evt => {
+        window.addEventListener(evt, e => {
+            let x, y;
+            if (e.touches && e.touches.length) {
+                x = e.touches[0].clientX;
+                y = e.touches[0].clientY;
+            } else {
+                x = e.clientX;
+                y = e.clientY;
+            }
+            spawnGoldParticle(x, y);
+        });
+    });
+
+    // === 長按卡片顯示/隱藏祝福語 ===
+    const card = document.querySelector('.container.glass-card');
+    let longPressTimer = null;
+    if (card && wish) {
+        card.addEventListener('touchstart', e => {
+            longPressTimer = setTimeout(() => {
+                wish.style.display = (wish.style.display === 'none') ? '' : 'none';
+            }, 650);
+        });
+        card.addEventListener('touchend', e => {
+            clearTimeout(longPressTimer);
+        });
+        card.addEventListener('mousedown', e => {
+            longPressTimer = setTimeout(() => {
+                wish.style.display = (wish.style.display === 'none') ? '' : 'none';
+            }, 650);
+        });
+        card.addEventListener('mouseup', e => {
+            clearTimeout(longPressTimer);
+        });
+    }
+
+    // === 卡片隨手機偏轉而偏轉 ===
+    if (window.DeviceOrientationEvent && card) {
+        window.addEventListener('deviceorientation', function(event) {
+            // gamma: 左右, beta: 前後
+            const maxTilt = 18;
+            const rotateY = Math.max(Math.min(event.gamma, maxTilt), -maxTilt);
+            const rotateX = Math.max(Math.min(event.beta - 45, maxTilt), -maxTilt);
+            card.style.transform = `rotateY(${-rotateY}deg) rotateX(${rotateX}deg)`;
+        });
+    }
 }); 
